@@ -204,6 +204,12 @@ module Bullet
       request_uri = build_request_uri(env)
       for_each_active_notifier_with_notification do |notification|
         notification.url = request_uri
+        notification.count = notification_collector.collection_to_count[notification]
+        first_ts = notification_collector.collection_to_first_ts[notification]
+        last_ts = notification_collector.collection_to_last_ts[notification]
+        if first_ts && last_ts
+          notification.duration = last_ts - first_ts
+        end
         notification.notify_out_of_channel
       end
     end

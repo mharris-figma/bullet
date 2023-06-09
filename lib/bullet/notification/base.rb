@@ -3,7 +3,7 @@
 module Bullet
   module Notification
     class Base
-      attr_accessor :notifier, :url
+      attr_accessor :notifier, :url, :count, :duration
       attr_reader :base_class, :associations, :path
 
       def initialize(base_class, association_or_associations, path = nil)
@@ -55,7 +55,14 @@ module Bullet
       end
 
       def notification_data
-        { user: whoami, url: url, title: title, body: body_with_caller }
+        {
+          user: whoami,
+          url: url,
+          title: title,
+          body: body_with_caller,
+          count: "This query occurred #{count} times during the request",
+          duration: "There were #{(duration * 1000).round} ms between the first and last queries",
+        }
       end
 
       def eql?(other)

@@ -38,7 +38,9 @@ module Bullet
                 :counter_cache_enable,
                 :stacktrace_includes,
                 :stacktrace_excludes,
-                :skip_html_injection
+                :skip_html_injection,
+                :min_queries_for_notification,
+                :min_query_duration_for_notification
     attr_reader :safelist
     attr_accessor :add_footer, :orm_patches_applied, :skip_http_headers, :always_append_html_body
 
@@ -85,6 +87,14 @@ module Bullet
 
     def unused_eager_loading_enable?
       enable? && !!@unused_eager_loading_enable
+    end
+
+    def get_min_queries_for_notification
+      @min_queries_for_notification || 0
+    end
+
+    def get_min_query_duration_for_notification
+      @min_query_duration_for_notification || 0
     end
 
     def counter_cache_enable?
@@ -181,7 +191,7 @@ module Bullet
       return unless start?
 
       Bullet::Detector::UnusedEagerLoading.check_unused_preload_associations
-      notification_collector.notifications_present?
+      notification_collector.notifications_present?(min_queries: get_min_queries_for_notification, min_duration: get_min_query_duration_for_notification)
     end
 
     def gather_inline_notifications
@@ -254,7 +264,7 @@ module Bullet
 
     def for_each_active_notifier_with_notification
       UniformNotifier.active_notifiers.each do |notifier|
-        notification_collector.collection.each do |notification|
+        notification_collector.collection(min_queries: get_min_queries_for_notification, min_duration: get_min_query_duration_for_notification).each do |notification|
           notification.notifier = notifier
           yield notification
         end
